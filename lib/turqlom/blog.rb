@@ -9,20 +9,28 @@ class Turqlom::Blog
     posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
     posts.each do |p|
       post = Turqlom::Post.new(p)
+
       #create address folder if it doesn't exist
       if !File.directory? post.blog_path
         FileUtils.mkdir_p(post.blog_path)
+
         #clone custom balzac repo into blog_dir
         `git clone --verbose git@github.com:awt/Balzac-for-Jekyll.git #{post.blog_path}`
+
         write_template(
                         File.join(post.blog_path, 's3_website.yml.erb'),
                         File.join(post.blog_path, 's3_website.yml')
                       ) do |erb|
-          s3_bucket = "#{post.address}.turqlom.com"
+          s3_bucket = "#{post.address.downcase}.turqlom.com"
           erb.result(binding)
         end
-        #`s3_website cfg apply`
+        
+        #Set up bucket for blog
+        Dir.chdir(post.blog_path) do
+          `echo '\n' | s3_website cfg apply`
+        end 
       end
+      
       #write post to _posts from erb template
       write_template(
                       File.join(post.blog_path, 'post.md.erb'),
@@ -37,12 +45,11 @@ class Turqlom::Blog
         erb.result(binding)
       end
 
-      #jekyll build
-
-      `jekyll build`
-      #post to s3 website
-      #s3_website cfg apply
-      #s3_website push --headless
+      #jekyll build and push to s3
+      Dir.chdir(post.blog_path) do
+        `jekyll build`
+        `s3_website push --headless`
+      end
     end
   end
 
