@@ -18,7 +18,7 @@ class Turqlom::Blog
         `git clone --verbose git@github.com:awt/Balzac-for-Jekyll.git #{post.blog_path}`
 
         write_template(
-                        File.join(post.blog_path, 's3_website.yml.erb'),
+                        File.join(post.blog_path, '_s3_website.yml.erb'),
                         File.join(post.blog_path, 's3_website.yml')
                       ) do |erb|
           s3_bucket = "#{post.address.downcase}.turqlom.com"
@@ -33,15 +33,25 @@ class Turqlom::Blog
       
       #write post to _posts from erb template
       write_template(
-                      File.join(post.blog_path, 'post.md.erb'),
+                      File.join(post.blog_path, '_post.md.erb'),
                       File.join(post.blog_path, "_posts", post.file_name)
                     ) do |erb|
       
         layout = "post-no-feature"
         title = post.subject
         description = 'description'
-        category = 'article'
+        category = 'articles'
         body = post.body
+        erb.result(binding)
+      end
+
+      #update jekyll config with url
+      write_template(
+                      File.join(post.blog_path, '_config.yml.erb'),
+                      File.join(post.blog_path, '_config.yml')
+                    ) do |erb|
+        address = post.address
+        url = "http://#{post.address.downcase}.turqlom.com.s3-website-us-east-1.amazonaws.com"
         erb.result(binding)
       end
 
