@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+lib = File.expand_path(File.dirname(__FILE__) + '/../lib')
+$LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
+
+require 'turqlom'
+require 'trollop'
+require 'pp'
+
+
+#p = Trollop::Parser.new do
+  #opt :datapath, "Specify path in which blogs should be stored", :type => :string
+#end
+
+#opts = Trollop::with_standard_exception_handling p do
+  #raise Trollop::HelpNeeded if ARGV.empty? # show help screen
+  #p.parse ARGV
+#end
+
+#Trollop::die :api_key, "required" if opts[:api_key].nil?
+#Trollop::die :account_name, "required" if opts[:account_name].nil?
+#Trollop::die :organization, "required" if opts[:organization].nil?
+#Trollop::die :csv_path, "required" if opts[:csv_path].nil?
+
+
+if !ENV['TURQLOM_DATAPATH'].nil?
+  Turqlom::DATAPATH = ENV['TURQLOM_DATAPATH']
+end
+
+if !defined?(Turqlom::DATAPATH)
+  Dir.mktmpdir do |dir|
+    Turqlom::DATAPATH = dir
+    Turqlom::Blog.import_and_publish_posts
+  end
+else
+  Turqlom::Blog.import_and_publish_posts
+end
+
