@@ -27,6 +27,10 @@ if !ENV['TURQLOM_DATAPATH'].nil?
   Turqlom::DATAPATH = ENV['TURQLOM_DATAPATH']
 end
 
+if !ENV['TURQLOM_BM_URI'].nil?
+  Turqlom::BM_URI = ENV['TURQLOM_BM_URI']
+end
+
 if !defined?(Turqlom::DATAPATH)
   Dir.mktmpdir do |dir|
     Turqlom::DATAPATH = dir
