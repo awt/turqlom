@@ -11,13 +11,9 @@ class Turqlom::Blog
     end
 
     def import_and_publish_posts
-      #messages = bm_api_client.get_all_inbox_messages
-      #messages.each do |msg|
-        #pp msg
-      #end
-
       #read post fixture
-      posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
+      #posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
+      posts = bm_api_client.get_all_inbox_messages.select {|m| m.from == Turqlom::SETTINGS.receiving_address }
       posts.each do |p|
         post = Turqlom::Post.new(p)
 
