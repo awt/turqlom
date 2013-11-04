@@ -3,40 +3,37 @@
 lib = File.expand_path(File.dirname(__FILE__) + '/../lib')
 $LOAD_PATH.unshift(lib) if File.directory?(lib) && !$LOAD_PATH.include?(lib)
 
-require 'turqlom'
 require 'trollop'
 require 'pp'
+require 'turqlom'
 
-
-#p = Trollop::Parser.new do
-  #opt :datapath, "Specify path in which blogs should be stored", :type => :string
-#end
-
-#opts = Trollop::with_standard_exception_handling p do
-  #raise Trollop::HelpNeeded if ARGV.empty? # show help screen
-  #p.parse ARGV
-#end
-
+p = Trollop::Parser.new do
+  opt :config, "Specify path to config file", :type => :string
+  opt :environment, "Set environment to production or development", :type => :string
+end
+opts = Trollop::with_standard_exception_handling p do
+  #raise Trollop::HelpNeeded if ARGV.empty?  #show help screen
+  p.parse ARGV
+end
 #Trollop::die :api_key, "required" if opts[:api_key].nil?
 #Trollop::die :account_name, "required" if opts[:account_name].nil?
 #Trollop::die :organization, "required" if opts[:organization].nil?
 #Trollop::die :csv_path, "required" if opts[:csv_path].nil?
 
 
-if !ENV['TURQLOM_DATAPATH'].nil?
-  Turqlom::DATAPATH = ENV['TURQLOM_DATAPATH']
+if opts[:environment]
+  Turqlom.env = opts[:environment]
 end
 
-if !ENV['TURQLOM_BM_URI'].nil?
-  Turqlom::BM_URI = ENV['TURQLOM_BM_URI']
-end
-
-if !defined?(Turqlom::DATAPATH)
-  Dir.mktmpdir do |dir|
-    Turqlom::DATAPATH = dir
-    Turqlom::Blog.import_and_publish_posts
-  end
+if !opts[:config].nil? 
+  Turqlom::SETTINGS = Turqlom::Settings.new(opts[:config])
 else
-  Turqlom::Blog.import_and_publish_posts
+  Turqlom::SETTINGS = Turqlom::Settings.new({})
 end
+
+
+
+Turqlom::BM_URI = Turqlom::SETTINGS.bm_uri
+
+Turqlom::Blog.import_and_publish_posts
 

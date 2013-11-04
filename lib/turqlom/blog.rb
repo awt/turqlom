@@ -7,7 +7,7 @@ require 'erb'
 class Turqlom::Blog
   class << self
     def bm_api_client
-      @@bm_api_client ||= Bitmessage::ApiClient.new Turqlom::BM_URI
+      @@bm_api_client ||= Bitmessage::ApiClient.new Turqlom::SETTINGS.bm_uri
     end
 
     def import_and_publish_posts
@@ -32,13 +32,15 @@ class Turqlom::Blog
                           File.join(post.blog_path, '_s3_website.yml.erb'),
                           File.join(post.blog_path, 's3_website.yml')
                         ) do |erb|
+            s3_id = Turqlom::SETTINGS.s3_id
+            s3_secret = Turqlom::SETTINGS.s3_secret
             s3_bucket = "#{post.address.downcase}.turqlom.com"
             erb.result(binding)
           end
           
           #Set up bucket for blog
           Dir.chdir(post.blog_path) do
-            #`echo '\n' | s3_website cfg apply`
+            `echo '\n' | s3_website cfg apply`
           end 
         end
         
@@ -69,7 +71,7 @@ class Turqlom::Blog
         #jekyll build and push to s3
         Dir.chdir(post.blog_path) do
           `jekyll build`
-          #`s3_website push --headless`
+          `s3_website push --headless`
         end
       end
     end

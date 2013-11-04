@@ -16,7 +16,7 @@ class Turqlom::Post
   end
 
   def blog_path
-    File.join(Turqlom::DATAPATH, @post['address'])
+    File.join(Turqlom::SETTINGS.datapath, @post['address'])
   end
 
   def subject
