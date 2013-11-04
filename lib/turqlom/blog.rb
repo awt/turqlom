@@ -26,7 +26,7 @@ class Turqlom::Blog
           FileUtils.mkdir_p(post.blog_path)
 
           #clone custom balzac repo into blog_dir
-          `git clone --verbose git@github.com:awt/Balzac-for-Jekyll.git #{post.blog_path}`
+          `git clone #{Turqlom::SETTINGS.blog_template} #{post.blog_path}`
 
           write_template(
                           File.join(post.blog_path, '_s3_website.yml.erb'),
