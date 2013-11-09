@@ -15,10 +15,6 @@ class Turqlom::Post
     file_name
   end
 
-  def blog_path
-    File.join(Turqlom::SETTINGS.datapath, address)
-  end
-
   def subject
     @post.subject
   end
