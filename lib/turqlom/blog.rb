@@ -23,9 +23,9 @@ class Turqlom::Blog
   end
 
   def initialize_path
-    logger.info "Creating blog directory: #{path}"
     #create address folder if it doesn't exist
     if !File.directory? path
+      logger.info "Creating blog directory: #{path}"
       FileUtils.mkdir_p(path)
 
       #clone custom balzac repo into blog_dir
@@ -67,7 +67,7 @@ class Turqlom::Blog
     logger.info("Building and publishing blog at path: #{path} to s3")
     Dir.chdir(path) do
       `jekyll build`
-  #    `s3_website push --headless`
+      `s3_website push --headless`
     end
   end
 
