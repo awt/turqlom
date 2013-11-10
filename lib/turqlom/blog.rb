@@ -6,12 +6,12 @@ require 'yaml'
 require 'erb'
 
 class Turqlom::Blog
+  S3_HOST = ".turqlom.com.s3-website-us-east-1.amazonaws.com"
   attr_accessor :address
 
   def initialize(address)
     @address = address
     initialize_path
-    write_jekyll_config
   end
 
   def logger
@@ -22,6 +22,10 @@ class Turqlom::Blog
     File.join(Turqlom::SETTINGS.datapath, @address)
   end
 
+  def blog_template
+    Turqlom::SETTINGS.blog_template
+  end
+
   def initialize_path
     #create address folder if it doesn't exist
     if !File.directory? path
@@ -29,7 +33,7 @@ class Turqlom::Blog
       FileUtils.mkdir_p(path)
 
       #clone custom balzac repo into blog_dir
-      `git clone #{Turqlom::SETTINGS.blog_template} #{path}`
+      `git clone #{blog_template} #{path}`
 
       Turqlom::Util.write_template(
                       File.join(path, '_s3_website.yml.erb'),
@@ -42,10 +46,21 @@ class Turqlom::Blog
       end
       
       #Set up bucket for blog
-      logger.info "Initializing s3 bucket for blog at path: #{path}"
+      if !Turqlom::SETTINGS['disable-s3']
+        logger.info "Initializing s3 bucket for blog at path: #{path}"
+        Dir.chdir(path) do
+          `echo '\n' | s3_website cfg apply`
+        end 
+      end
+    end
+  end
+
+  def update_path
+    if File.directory? path
       Dir.chdir(path) do
-        `echo '\n' | s3_website cfg apply`
-      end 
+        logger.info("#{path} already exists.  Updating from git..")
+        `git pull`
+      end
     end
   end
 
@@ -56,18 +71,22 @@ class Turqlom::Blog
                     File.join(path, '_config.yml.erb'),
                     File.join(path, '_config.yml')
                   ) do |erb|
-      address = @address
-      url = "http://#{@address.downcase}.turqlom.com.s3-website-us-east-1.amazonaws.com"
+      url = "http://#{@address.downcase}#{S3_HOST}"
+      admin_name = Turqlom::SETTINGS['admin_name']
+      admin_bm = Turqlom::SETTINGS['admin_bm']
       erb.result(binding)
     end
   end
 
   #jekyll build and push to s3
   def push
-    logger.info("Building and publishing blog at path: #{path} to s3")
     Dir.chdir(path) do
+      logger.info("Building blog at path: #{path}")
       `jekyll build`
-      `s3_website push --headless`
+      if !Turqlom::SETTINGS['disable-s3']
+        logger.info("Publishing blog at path: #{path} to s3")
+        `s3_website push --headless`
+      end
     end
   end
 
@@ -81,9 +100,11 @@ class Turqlom::Blog
     
       layout = "post-no-feature"
       title = post.subject
-      description = 'description'
+      description = post.body[0..320] + ( ( post.body.size > 320 ) ? '...' : '' )
+      base_url = "http://#{post.address.downcase}#{S3_HOST}"
       category = 'articles'
       body = post.body
+      post_address = post.address
       erb.result(binding)
     end
   end
@@ -94,14 +115,21 @@ class Turqlom::Blog
     end
 
     def import_and_publish_posts
-      index_blog = Turqlom::IndexBlog.new 'index'
+      index_blog = Turqlom::IndexBlog.new 'www'
+      index_blog.update_path
+      index_blog.write_jekyll_config
       #read post fixture
       #posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
       updated_blogs = []
       posts = bm_api_client.get_all_inbox_messages.select {|m| m.from == Turqlom::SETTINGS.receiving_address }
       posts.each do |p|
         blog = Turqlom::Blog.new(p.from)
-        updated_blogs << blog if (updated_blogs.keep_if { |b| b.address == blog.address }.size == 0)
+
+        if (updated_blogs.keep_if { |b| b.address == blog.address }.size == 0)
+          updated_blogs << blog 
+          blog.update_path
+          blog.write_jekyll_config
+        end
         post = Turqlom::Post.new(p)
         
         blog.write_post(post)

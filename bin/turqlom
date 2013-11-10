@@ -9,6 +9,7 @@ require 'turqlom'
 
 p = Trollop::Parser.new do
   opt :config, "Specify path to config file", :type => :string
+  opt "disable-s3", "Disable S3 bucket creation and uploads", :type => :boolean
   opt :environment, "Set environment to production or development", :type => :string
 end
 opts = Trollop::with_standard_exception_handling p do
@@ -31,6 +32,9 @@ else
   Turqlom::SETTINGS = Turqlom::Settings.new({})
 end
 
+if opts["disable-s3"]
+  Turqlom::SETTINGS["disable-s3"] = true
+end
 
 
 Turqlom::BM_URI = Turqlom::SETTINGS.bm_uri
