@@ -1,4 +1,5 @@
 class Turqlom::Post
+  include Logging
   attr_accessor :post
 
   def initialize(post)
@@ -25,5 +26,10 @@ class Turqlom::Post
 
   def address
     @post.from
+  end
+
+  def delete_from_bitmessage
+    logger.info "Trashing message with id #{@post.msgid}"
+    Turqlom::Blog.bm_api_client.trash_message @post.msgid
   end
 end

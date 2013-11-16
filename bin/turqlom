@@ -29,7 +29,7 @@ end
 if !opts[:config].nil? 
   Turqlom::SETTINGS = Turqlom::Settings.new(opts[:config])
 else
-  Turqlom::SETTINGS = Turqlom::Settings.new({})
+  Turqlom::SETTINGS = Turqlom::Settings.new('/usr/local/etc/init.d/turqlom.yml')
 end
 
 if opts["disable-s3"]

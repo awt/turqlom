@@ -6,16 +6,14 @@ require 'yaml'
 require 'erb'
 
 class Turqlom::Blog
+  include Logging
+
   S3_HOST = ".turqlom.com.s3-website-us-east-1.amazonaws.com"
   attr_accessor :address
 
   def initialize(address)
     @address = address
     initialize_path
-  end
-
-  def logger
-    @logger ||= Logger.new(STDOUT)
   end
 
   def path
@@ -120,8 +118,10 @@ class Turqlom::Blog
       index_blog.write_jekyll_config
       #read post fixture
       #posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
+      @@logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
+      posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
+      @@logger.info("Found #{posts.size} new messages")
       updated_blogs = []
-      posts = bm_api_client.get_all_inbox_messages.select {|m| m.from == Turqlom::SETTINGS.receiving_address }
       posts.each do |p|
         blog = Turqlom::Blog.new(p.from)
 
@@ -135,7 +135,8 @@ class Turqlom::Blog
         blog.write_post(post)
         index_blog.write_post(post)
 
-        #TODO: Delete message from bm
+        # Delete message from bm
+        post.delete_from_bitmessage
       end
       updated_blogs.each do |b|
         b.push
