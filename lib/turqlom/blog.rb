@@ -1,3 +1,4 @@
+require 'ostruct'
 require 'logger'
 require 'bitmessage'
 require 'tmpdir'
@@ -17,7 +18,7 @@ class Turqlom::Blog
   end
 
   def path
-    File.join(Turqlom::SETTINGS.datapath, @address)
+    File.join(Turqlom::SETTINGS.staging_path, @address)
   end
 
   def blog_template
@@ -33,23 +34,23 @@ class Turqlom::Blog
       #clone custom balzac repo into blog_dir
       `git clone #{blog_template} #{path}`
 
-      Turqlom::Util.write_template(
-                      File.join(path, '_s3_website.yml.erb'),
-                      File.join(path, 's3_website.yml')
-                    ) do |erb|
-        s3_id = Turqlom::SETTINGS.s3_id
-        s3_secret = Turqlom::SETTINGS.s3_secret
-        s3_bucket = "#{@address.downcase}.turqlom.com"
-        erb.result(binding)
-      end
+      #Turqlom::Util.write_template(
+                      #File.join(path, '_s3_website.yml.erb'),
+                      #File.join(path, 's3_website.yml')
+                    #) do |erb|
+        #s3_id = Turqlom::SETTINGS.s3_id
+        #s3_secret = Turqlom::SETTINGS.s3_secret
+        #s3_bucket = "#{@address.downcase}.turqlom.com"
+        #erb.result(binding)
+      #end
       
-      #Set up bucket for blog
-      if !Turqlom::SETTINGS['disable-s3']
-        logger.info "Initializing s3 bucket for blog at path: #{path}"
-        Dir.chdir(path) do
-          `echo '\n' | s3_website cfg apply`
-        end 
-      end
+      ##Set up bucket for blog
+      #if !Turqlom::SETTINGS['disable-s3']
+        #logger.info "Initializing s3 bucket for blog at path: #{path}"
+        #Dir.chdir(path) do
+          #`echo '\n' | s3_website cfg apply`
+        #end 
+      #end
     end
   end
 
@@ -88,6 +89,13 @@ class Turqlom::Blog
     end
   end
 
+  def jekyll_build
+    Dir.chdir(path) do
+      logger.info("Building blog at path: #{path}")
+      `jekyll build`
+    end
+  end
+
   def write_post(post)
     #write post to _posts from erb template
     logger.info("Writing post #{post.file_name} to blog #{path}")
@@ -105,6 +113,26 @@ class Turqlom::Blog
       post_address = post.address
       erb.result(binding)
     end
+
+    def wwwroot_path
+      File.join(Turqlom::SETTINGS.wwwroot, @address)
+    end
+
+    def translate_to_web_structure
+      if File.directory? wwwroot_path
+        logger.info("Removing previous wwwroot at: #{wwwroot_path}")
+        FileUtils.remove_dir(wwwroot_path)
+      end
+      logger.info("Creating wwwroot_path at: #{wwwroot_path}")
+      FileUtils.mkdir_p(wwwroot_path)
+      wwwsource_path = File.join(path, "_site/*")
+      if File.directory? File.join(path, "_site")
+        logger.info("Moving files from: #{wwwsource_path} to #{wwwroot_path}")
+        FileUtils.mv(Dir.glob(wwwsource_path), wwwroot_path)
+      else
+        logger.error("Missing www source dir: #{wwwsource_path}")
+      end
+    end
   end
 
   class << self
@@ -117,15 +145,15 @@ class Turqlom::Blog
       index_blog.update_path
       index_blog.write_jekyll_config
       #read post fixture
-      #posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
-      @@logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
-      posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
-      @@logger.info("Found #{posts.size} new messages")
+      posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
+      posts = posts.collect {|p| OpenStruct.new p }
+      #@@logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
+      #posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
+      #@@logger.info("Found #{posts.size} new messages")
       updated_blogs = []
       posts.each do |p|
         blog = Turqlom::Blog.new(p.from)
-
-        if (updated_blogs.keep_if { |b| b.address == blog.address }.size == 0)
+        if (updated_blogs.select { |b| b.address == blog.address }.size == 0)
           updated_blogs << blog 
           blog.update_path
           blog.write_jekyll_config
@@ -138,11 +166,12 @@ class Turqlom::Blog
         # Delete message from bm
         post.delete_from_bitmessage
       end
+      index_blog.jekyll_build
+      index_blog.translate_to_web_structure
       updated_blogs.each do |b|
-        b.push
+        b.jekyll_build
+        b.translate_to_web_structure
       end
-      index_blog.push
     end
-
   end
 end

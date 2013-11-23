@@ -9,7 +9,7 @@ require 'turqlom'
 
 p = Trollop::Parser.new do
   opt :config, "Specify path to config file", :type => :string
-  opt "disable-s3", "Disable S3 bucket creation and uploads", :type => :boolean
+  opt "disable-bm", "Disable calls to BM api", :type => :boolean
   opt :environment, "Set environment to production or development", :type => :string
 end
 opts = Trollop::with_standard_exception_handling p do
@@ -32,8 +32,8 @@ else
   Turqlom::SETTINGS = Turqlom::Settings.new('/usr/local/etc/init.d/turqlom.yml')
 end
 
-if opts["disable-s3"]
-  Turqlom::SETTINGS["disable-s3"] = true
+if opts["disable-bm"]
+  Turqlom::SETTINGS["disable-bm"] = true
 end
 
 

@@ -29,7 +29,9 @@ class Turqlom::Post
   end
 
   def delete_from_bitmessage
-    logger.info "Trashing message with id #{@post.msgid}"
-    Turqlom::Blog.bm_api_client.trash_message @post.msgid
+    if !Turqlom::SETTINGS['disable-bm']
+      logger.info "Trashing message with id #{@post.msgid}"
+      Turqlom::Blog.bm_api_client.trash_message @post.msgid
+    end
   end
 end

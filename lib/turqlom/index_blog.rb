@@ -6,4 +6,8 @@ class Turqlom::IndexBlog < Turqlom::Blog
   def address
     "Turqlom"
   end
+
+  def wwwroot_path
+    Turqlom::SETTINGS.wwwroot
+  end
 end
