@@ -34,4 +34,8 @@ class Turqlom::Post
       Turqlom::Blog.bm_api_client.trash_message @post.msgid
     end
   end
+
+  def base_url
+    "http://#{Turqlom::SETTINGS['host']}/#{address}"
+  end
 end

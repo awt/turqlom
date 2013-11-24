@@ -10,4 +10,8 @@ class Turqlom::IndexBlog < Turqlom::Blog
   def wwwroot_path
     Turqlom::SETTINGS.wwwroot
   end
+
+  def url
+    url = "http://#{Turqlom::SETTINGS['host']}"
+  end
 end

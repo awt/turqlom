@@ -9,7 +9,6 @@ require 'erb'
 class Turqlom::Blog
   include Logging
 
-  S3_HOST = ".turqlom.com.s3-website-us-east-1.amazonaws.com"
   attr_accessor :address
 
   def initialize(address)
@@ -33,24 +32,6 @@ class Turqlom::Blog
 
       #clone custom balzac repo into blog_dir
       `git clone #{blog_template} #{path}`
-
-      #Turqlom::Util.write_template(
-                      #File.join(path, '_s3_website.yml.erb'),
-                      #File.join(path, 's3_website.yml')
-                    #) do |erb|
-        #s3_id = Turqlom::SETTINGS.s3_id
-        #s3_secret = Turqlom::SETTINGS.s3_secret
-        #s3_bucket = "#{@address.downcase}.turqlom.com"
-        #erb.result(binding)
-      #end
-      
-      ##Set up bucket for blog
-      #if !Turqlom::SETTINGS['disable-s3']
-        #logger.info "Initializing s3 bucket for blog at path: #{path}"
-        #Dir.chdir(path) do
-          #`echo '\n' | s3_website cfg apply`
-        #end 
-      #end
     end
   end
 
@@ -63,6 +44,10 @@ class Turqlom::Blog
     end
   end
 
+  def url
+    url = "http://#{Turqlom::SETTINGS['host']}/#{@address}"
+  end
+
   #update jekyll config with url
   def write_jekyll_config
     logger.info("Writing jekyll config.")
@@ -70,7 +55,6 @@ class Turqlom::Blog
                     File.join(path, '_config.yml.erb'),
                     File.join(path, '_config.yml')
                   ) do |erb|
-      url = "http://#{@address.downcase}#{S3_HOST}"
       admin_name = Turqlom::SETTINGS['admin_name']
       admin_bm = Turqlom::SETTINGS['admin_bm']
       erb.result(binding)
@@ -107,7 +91,7 @@ class Turqlom::Blog
       layout = "post-no-feature"
       title = post.subject
       description = post.body[0..320] + ( ( post.body.size > 320 ) ? '...' : '' )
-      base_url = "http://#{post.address.downcase}#{S3_HOST}"
+      base_url = post.base_url
       category = 'articles'
       body = post.body
       post_address = post.address
