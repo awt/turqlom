@@ -18,8 +18,8 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
+  spec.add_runtime_dependency "kramdown"
   spec.add_runtime_dependency "jekyll"
-  spec.add_runtime_dependency "s3_website"
   spec.add_runtime_dependency "jekyll-minibundle"
   spec.add_runtime_dependency "coderay"
   spec.add_runtime_dependency "rake"

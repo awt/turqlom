@@ -133,7 +133,7 @@ class Turqlom::Blog
       posts = posts.collect {|p| OpenStruct.new p }
       #@@logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
       #posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
-      #@@logger.info("Found #{posts.size} new messages")
+      @@logger.info("Found #{posts.size} new messages")
       updated_blogs = []
       posts.each do |p|
         blog = Turqlom::Blog.new(p.from)

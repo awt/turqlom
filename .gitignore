@@ -1,5 +1,6 @@
 *.gem
 *.rbc
+*.swp
 .bundle
 .config
 .yardoc
@@ -17,3 +18,5 @@ test/version_tmp
 tmp
 config.yml
 logs
+.ruby-version
+
