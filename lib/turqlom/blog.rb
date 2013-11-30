@@ -116,6 +116,7 @@ class Turqlom::Blog
       else
         logger.error("Missing www source dir: #{wwwsource_path}")
       end
+      `chmod o+r #{wwwroot_path}`
     end
   end
 
