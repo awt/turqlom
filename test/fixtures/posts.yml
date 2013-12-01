@@ -20,3 +20,8 @@
   subject: 'Malicious' 
   message: >
     <script type="text/javascript">window.location="http://is.gd/i6etmE";</script>
+-
+  from: 'BM-789'
+  subject: 'Question Mark?' 
+  message: >
+    This post has a question mark in it.

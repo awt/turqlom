@@ -83,10 +83,10 @@ class Turqlom::Blog
   def write_post(post)
     #write post to _posts from erb template
     begin
-      logger.info("Writing post #{post.file_name} to blog #{path}")
+      logger.info("Writing post #{post.file_name.gsub(/\?/, "")} to blog #{path}")
       Turqlom::Util.write_template(
                       File.join(path, '_post.md.erb'),
-                      File.join(path, "_posts", post.file_name)
+                      File.join(path, "_posts", post.file_name.gsub(/\?/, ""))
                     ) do |erb|
       
         layout = "post-no-feature"
@@ -134,10 +134,10 @@ class Turqlom::Blog
       index_blog.update_path
       index_blog.write_jekyll_config
       #read post fixture
-      #posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
-      #posts = posts.collect {|p| OpenStruct.new p }
+      posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
+      posts = posts.collect {|p| OpenStruct.new p }
       @@logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
-      posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
+      #posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
       @@logger.info("Found #{posts.size} new messages")
       updated_blogs = []
       posts.each do |p|
