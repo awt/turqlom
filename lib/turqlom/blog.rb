@@ -82,20 +82,24 @@ class Turqlom::Blog
 
   def write_post(post)
     #write post to _posts from erb template
-    logger.info("Writing post #{post.file_name} to blog #{path}")
-    Turqlom::Util.write_template(
-                    File.join(path, '_post.md.erb'),
-                    File.join(path, "_posts", post.file_name)
-                  ) do |erb|
-    
-      layout = "post-no-feature"
-      title = post.subject
-      description = post.body[0..320] + ( ( post.body.size > 320 ) ? '...' : '' )
-      base_url = post.base_url
-      category = 'articles'
-      body = post.body
-      post_address = post.address
-      erb.result(binding)
+    begin
+      logger.info("Writing post #{post.file_name} to blog #{path}")
+      Turqlom::Util.write_template(
+                      File.join(path, '_post.md.erb'),
+                      File.join(path, "_posts", post.file_name)
+                    ) do |erb|
+      
+        layout = "post-no-feature"
+        title = post.subject
+        description = post.body[0..320] + ( ( post.body.size > 320 ) ? '...' : '' )
+        base_url = post.base_url
+        category = 'articles'
+        body = post.body
+        post_address = post.address
+        erb.result(binding)
+      end
+    rescue Exception => e
+      logger.error(e.backtrace)
     end
 
   end
