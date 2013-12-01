@@ -1,3 +1,5 @@
+require 'cgi'
+
 class Turqlom::Post
   include Logging
   attr_accessor :post
@@ -17,11 +19,11 @@ class Turqlom::Post
   end
 
   def subject
-    @post.subject
+    CGI.escapeHTML @post.subject
   end
 
   def body
-    @post.message
+    CGI.escapeHTML @post.message
   end
 
   def address
