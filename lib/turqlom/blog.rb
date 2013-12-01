@@ -98,24 +98,25 @@ class Turqlom::Blog
       erb.result(binding)
     end
 
-    def wwwroot_path
-      File.join(Turqlom::SETTINGS.wwwroot, @address)
-    end
+  end
 
-    def translate_to_web_structure
-      if File.directory? wwwroot_path
-        logger.info("Removing previous wwwroot at: #{wwwroot_path}")
-        FileUtils.remove_dir(wwwroot_path)
-      end
-      logger.info("Creating wwwroot_path at: #{wwwroot_path}")
-      FileUtils.mkdir_p(wwwroot_path)
-      wwwsource_path = File.join(path, "_site/*")
-      if File.directory? File.join(path, "_site")
-        logger.info("Moving files from: #{wwwsource_path} to #{wwwroot_path}")
-        FileUtils.mv(Dir.glob(wwwsource_path), wwwroot_path)
-      else
-        logger.error("Missing www source dir: #{wwwsource_path}")
-      end
+  def wwwroot_path
+    File.join(Turqlom::SETTINGS.wwwroot, @address)
+  end
+
+  def translate_to_web_structure
+    if File.directory? wwwroot_path
+      logger.info("Removing previous wwwroot at: #{wwwroot_path}")
+      FileUtils.remove_dir(wwwroot_path)
+    end
+    logger.info("Creating wwwroot_path at: #{wwwroot_path}")
+    FileUtils.mkdir_p(wwwroot_path)
+    wwwsource_path = File.join(path, "_site/*")
+    if File.directory? File.join(path, "_site")
+      logger.info("Moving files from: #{wwwsource_path} to #{wwwroot_path}")
+      FileUtils.mv(Dir.glob(wwwsource_path), wwwroot_path)
+    else
+      logger.error("Missing www source dir: #{wwwsource_path}")
     end
   end
 
