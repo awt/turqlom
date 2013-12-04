@@ -109,16 +109,12 @@ class Turqlom::Blog
   end
 
   def translate_to_web_structure
-    if File.directory? wwwroot_path
-      logger.info("Removing previous wwwroot at: #{wwwroot_path}")
-      FileUtils.remove_dir(wwwroot_path)
-    end
     logger.info("Creating wwwroot_path at: #{wwwroot_path}")
     FileUtils.mkdir_p(wwwroot_path)
     wwwsource_path = File.join(path, "_site/*")
     if File.directory? File.join(path, "_site")
-      logger.info("Moving files from: #{wwwsource_path} to #{wwwroot_path}")
-      FileUtils.mv(Dir.glob(wwwsource_path), wwwroot_path)
+      logger.info("Copying files from: #{wwwsource_path} to #{wwwroot_path}")
+      FileUtils.cp_r(Dir.glob(wwwsource_path), wwwroot_path)
     else
       logger.error("Missing www source dir: #{wwwsource_path}")
     end
