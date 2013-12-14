@@ -11,6 +11,7 @@ p = Trollop::Parser.new do
   opt :config, "Specify path to config file", :type => :string
   opt "disable-bm", "Disable calls to BM api", :type => :boolean
   opt :environment, "Set environment to production or development", :type => :string
+  opt :regenerate, "Regenerate all posts", :type => :boolean
 end
 opts = Trollop::with_standard_exception_handling p do
   #raise Trollop::HelpNeeded if ARGV.empty?  #show help screen
@@ -24,6 +25,8 @@ end
 
 if opts[:environment]
   Turqlom.env = opts[:environment]
+elsif ENV['TURQLOM_ENVIRONMENT']
+  Turqlom.env = ENV['TURQLOM_ENVIRONMENT']
 end
 
 if !opts[:config].nil? 
@@ -39,5 +42,9 @@ end
 
 Turqlom::BM_URI = Turqlom::SETTINGS.bm_uri
 
-Turqlom::Blog.import_and_publish_posts
+if opts[:regenerate]
+  Turqlom::Blog.regenerate
+else
+  Turqlom::Blog.import
+end
 

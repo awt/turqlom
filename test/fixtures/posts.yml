@@ -1,5 +1,6 @@
 ---
 -
+  msgid: 1
   subject: 'Foo' 
   from: 'BM-123'
   message: >
@@ -8,6 +9,7 @@
     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
     cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 -
+  msgid: 2
   from: 'BM-456'
   subject: 'Bar' 
   message: >
@@ -16,12 +18,104 @@
     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
     cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 -
+  msgid: 3
   from: 'BM-789'
   subject: 'Malicious' 
   message: >
     <script type="text/javascript">window.location="http://is.gd/i6etmE";</script>
 -
+  msgid: 4
   from: 'BM-789'
   subject: 'Question Mark?' 
   message: >
     This post has a question mark in it.
+-
+  msgid: 5
+  from: 'BM-789'
+  subject: 'Extra post 1' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+-
+  msgid: 6
+  from: 'BM-789'
+  subject: 'Extra post 2' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+-
+  msgid: 5
+  from: 'BM-789'
+  subject: 'Extra post 3' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+-
+  msgid: 6
+  from: 'BM-789'
+  subject: 'Extra post 4' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+-
+  msgid: 7
+  from: 'BM-789'
+  subject: 'Extra post 5' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+-
+  msgid: 8
+  from: 'BM-789'
+  subject: 'Extra post 6' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+-
+  msgid: 9
+  from: 'BM-789'
+  subject: 'Extra post 7' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+-
+  msgid: 10
+  from: 'BM-789'
+  subject: 'Extra post 8' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+-
+  msgid: 11
+  from: 'BM-789'
+  subject: 'Extra post 9' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+-
+  msgid: 12
+  from: 'BM-789'
+  subject: 'Extra post 10' 
+  message: >
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
+    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.

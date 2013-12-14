@@ -125,16 +125,32 @@ class Turqlom::Blog
       @@bm_api_client ||= Bitmessage::ApiClient.new Turqlom::SETTINGS.bm_uri
     end
 
-    def import_and_publish_posts
+    def regenerate
+      posts_path = Turqlom::SETTINGS['posts_path']
+      posts = []
+      #iterate through all addresses
+      Dir.foreach(posts_path) do |blog_directory|
+        next if blog_directory == '.' or blog_directory == '..'
+        #load each post
+        Dir.foreach(File.join(posts_path, blog_directory)) do |post_file_name|
+          next if post_file_name == '.' or post_file_name == '..'
+          post_path = File.join(posts_path, blog_directory, post_file_name)
+          post = JSON.parse(File.read(post_path))
+          posts << post
+        end
+      end
+      posts = posts.collect {|p| OpenStruct.new p }
+      publish(posts)
+    end
+
+    def import
+      publish(get_messages)
+    end
+
+    def publish(posts)
       index_blog = Turqlom::IndexBlog.new 'www'
       index_blog.update_path
       index_blog.write_jekyll_config
-      #read post fixture
-      #posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
-      #posts = posts.collect {|p| OpenStruct.new p }
-      @@logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
-      posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
-      @@logger.info("Found #{posts.size} new messages")
       updated_blogs = []
       posts.each do |p|
         blog = Turqlom::Blog.new(p.from)
@@ -148,6 +164,9 @@ class Turqlom::Blog
         blog.write_post(post)
         index_blog.write_post(post)
 
+        # Save for later
+        post.save
+
         # Delete message from bm
         post.delete_from_bitmessage
       end
@@ -157,6 +176,20 @@ class Turqlom::Blog
         b.jekyll_build
         b.translate_to_web_structure
       end
+    end
+
+    def get_messages
+      #read post fixture
+      if Turqlom.env == "development"
+        @@logger.info("Loading fixtures since we're in development mode")
+        posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
+        posts = posts.collect {|p| OpenStruct.new p }
+      else
+        @@logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
+        posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
+        @@logger.info("Found #{posts.size} new messages")
+      end
+      posts
     end
   end
 end

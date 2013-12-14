@@ -1,4 +1,5 @@
 require 'cgi'
+require 'json'
 
 class Turqlom::Post
   include Logging
@@ -39,5 +40,23 @@ class Turqlom::Post
 
   def base_url
     "http://#{Turqlom::SETTINGS['host']}/#{address}"
+  end
+
+  def storage_path
+    File.join(Turqlom::SETTINGS['posts_path'], address)
+  end
+
+  def storage_file_name
+    "#{post.msgid}.json"
+  end
+
+  def save
+    FileUtils.mkdir_p(storage_path)
+    path = File.join(storage_path, storage_file_name)
+    logger.info("Storing post at: #{path}")
+    post = { subject: @post.subject, message: @post.message, msgid: @post.msgid, from: @post.from}
+    File.open(path, 'w+') do |file|
+      file.write(post.to_json)
+    end
   end
 end
