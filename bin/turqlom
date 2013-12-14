@@ -12,6 +12,7 @@ p = Trollop::Parser.new do
   opt "disable-bm", "Disable calls to BM api", :type => :boolean
   opt :environment, "Set environment to production or development", :type => :string
   opt :regenerate, "Regenerate all posts", :type => :boolean
+  opt :reimport, "Reimport all posts from _posts directories", :type => :boolean
 end
 opts = Trollop::with_standard_exception_handling p do
   #raise Trollop::HelpNeeded if ARGV.empty?  #show help screen
@@ -44,6 +45,8 @@ Turqlom::BM_URI = Turqlom::SETTINGS.bm_uri
 
 if opts[:regenerate]
   Turqlom::Blog.regenerate
+elsif opts[:reimport]
+  Turqlom::Blog.reimport
 else
   Turqlom::Blog.import
 end

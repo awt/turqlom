@@ -125,6 +125,44 @@ class Turqlom::Blog
       @@bm_api_client ||= Bitmessage::ApiClient.new Turqlom::SETTINGS.bm_uri
     end
 
+    def reimport
+      posts = []
+      msgid = 0
+      #iterate through folders in staging path  
+      staging_path = Turqlom::SETTINGS.staging_path
+      Dir.foreach(staging_path) do |blog_directory|
+        next if blog_directory == '.' or blog_directory == '..' or blog_directory == 'www'
+        #load each post
+        Dir.foreach(File.join(staging_path, blog_directory, '_posts')) do |post_file_name|
+          next if post_file_name == '.' or post_file_name == '..' or post_file_name == '.gitignore'
+          post_path = File.join(staging_path, blog_directory, '_posts', post_file_name)
+          metadata = YAML::load(File.read(post_path))
+           
+          #get body
+          body = ""
+          dash_count = 0
+          File.open(post_path).each_line do |line|
+            if (line =~ /---/) == 0
+              dash_count += 1
+            end
+            
+            if dash_count >= 2
+              body += line
+            end
+          end
+
+          post = { msgid: msgid, message: body, from: metadata["address"], subject: metadata["title"] }
+          posts << post
+          msgid += 1
+          posts = posts.collect {|p| OpenStruct.new p }
+          posts.each do |obj|
+            post = Turqlom::Post.new(obj)
+            post.save
+          end
+        end
+      end
+    end
+
     def regenerate
       posts_path = Turqlom::SETTINGS['posts_path']
       posts = []
@@ -139,6 +177,7 @@ class Turqlom::Blog
           posts << post
         end
       end
+
       posts = posts.collect {|p| OpenStruct.new p }
       publish(posts)
     end
@@ -181,7 +220,7 @@ class Turqlom::Blog
     def get_messages
       #read post fixture
       if Turqlom.env == "development"
-        @@logger.info("Loading fixtures since we're in development mode")
+        #@@logger.info("Loading fixtures since we're in development mode")
         posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
         posts = posts.collect {|p| OpenStruct.new p }
       else
