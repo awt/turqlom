@@ -2,6 +2,7 @@ require 'cgi'
 require 'json'
 
 class Turqlom::Post
+  include Client
   include Logging
   attr_accessor :post
 
@@ -34,7 +35,7 @@ class Turqlom::Post
   def delete_from_bitmessage
     if !Turqlom::SETTINGS['disable-bm']
       logger.info "Trashing message with id #{@post.msgid}"
-      Turqlom::Blog.bm_api_client.trash_message @post.msgid
+      bm_api_client.trash_message @post.msgid
     end
   end
 

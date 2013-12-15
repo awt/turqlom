@@ -8,6 +8,7 @@ require 'erb'
 
 class Turqlom::Blog
   include Logging
+  include Client
 
   attr_accessor :address
 
@@ -106,10 +107,6 @@ class Turqlom::Blog
     else
       logger.error("Missing www source dir: #{wwwsource_path}")
     end
-  end
-
-  def bm_api_client
-    @bm_api_client ||= Bitmessage::ApiClient.new Turqlom::SETTINGS.bm_uri
   end
 
   def get_messages
