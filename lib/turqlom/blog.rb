@@ -182,6 +182,26 @@ class Turqlom::Blog
       publish(posts)
     end
 
+
+    def republish
+      staging_path = Turqlom::SETTINGS.staging_path
+      blogs = []
+      Dir.foreach(staging_path) do |blog_address|
+        next if blog_address == '.' or blog_address == '..' or blog_address == 'www'
+        blog = Turqlom::Blog.new(blog_address)
+        blogs << blog
+      end
+
+      index_blog = Turqlom::IndexBlog.new 'www'
+      blogs << index_blog
+
+      blogs.each do |blog|
+        blog.update_path
+        blog.jekyll_build
+        blog.translate_to_web_structure
+      end
+    end
+
     def import
       publish(get_messages)
     end

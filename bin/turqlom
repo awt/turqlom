@@ -13,6 +13,7 @@ p = Trollop::Parser.new do
   opt :environment, "Set environment to production or development", :type => :string
   opt :regenerate, "Regenerate all posts", :type => :boolean
   opt :reimport, "Reimport all posts from _posts directories", :type => :boolean
+  opt :republish, "Rebuild all and translate structure to web", :type => :boolean
 end
 opts = Trollop::with_standard_exception_handling p do
   #raise Trollop::HelpNeeded if ARGV.empty?  #show help screen
@@ -47,6 +48,8 @@ if opts[:regenerate]
   Turqlom::Blog.regenerate
 elsif opts[:reimport]
   Turqlom::Blog.reimport
+elsif opts[:republish]
+  Turqlom::Blog.republish
 else
   Turqlom::Blog.import
 end
