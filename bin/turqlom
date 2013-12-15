@@ -44,13 +44,14 @@ end
 
 Turqlom::BM_URI = Turqlom::SETTINGS.bm_uri
 
+blog = Turqlom::Blog.new
 if opts[:regenerate]
-  Turqlom::Blog.regenerate
+  blog.regenerate
 elsif opts[:reimport]
-  Turqlom::Blog.reimport
+  blog.reimport
 elsif opts[:republish]
-  Turqlom::Blog.republish
+  blog.republish
 else
-  Turqlom::Blog.import
+  blog.import
 end
 

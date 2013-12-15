@@ -11,9 +11,9 @@ class Turqlom::Blog
 
   attr_accessor :address
 
-  def initialize(address)
+  def initialize(address=nil)
     @address = address
-    initialize_path
+    initialize_path if !address.nil?
   end
 
   def path
@@ -58,18 +58,6 @@ class Turqlom::Blog
       admin_name = Turqlom::SETTINGS['admin_name']
       admin_bm = Turqlom::SETTINGS['admin_bm']
       erb.result(binding)
-    end
-  end
-
-  #jekyll build and push to s3
-  def push
-    Dir.chdir(path) do
-      logger.info("Building blog at path: #{path}")
-      `jekyll build`
-      if !Turqlom::SETTINGS['disable-s3']
-        logger.info("Publishing blog at path: #{path} to s3")
-        `s3_website push --headless`
-      end
     end
   end
 
@@ -120,135 +108,134 @@ class Turqlom::Blog
     end
   end
 
-  class << self
-    def bm_api_client
-      @@bm_api_client ||= Bitmessage::ApiClient.new Turqlom::SETTINGS.bm_uri
-    end
+  def bm_api_client
+    @bm_api_client ||= Bitmessage::ApiClient.new Turqlom::SETTINGS.bm_uri
+  end
 
-    def reimport
-      posts = []
-      msgid = 0
-      #iterate through folders in staging path  
-      staging_path = Turqlom::SETTINGS.staging_path
-      Dir.foreach(staging_path) do |blog_directory|
-        next if blog_directory == '.' or blog_directory == '..' or blog_directory == 'www'
-        #load each post
-        Dir.foreach(File.join(staging_path, blog_directory, '_posts')) do |post_file_name|
-          next if post_file_name == '.' or post_file_name == '..' or post_file_name == '.gitignore'
-          post_path = File.join(staging_path, blog_directory, '_posts', post_file_name)
-          metadata = YAML::load(File.read(post_path))
-           
-          #get body
-          body = ""
-          dash_count = 0
-          File.open(post_path).each_line do |line|
-            if (line =~ /---/) == 0
-              dash_count += 1
-            end
-            
-            if dash_count >= 2
-              body += line
-            end
-          end
-
-          post = { msgid: msgid, message: body, from: metadata["address"], subject: metadata["title"] }
-          posts << post
-          msgid += 1
-          posts = posts.collect {|p| OpenStruct.new p }
-          posts.each do |obj|
-            post = Turqlom::Post.new(obj)
-            post.save
-          end
-        end
-      end
-    end
-
-    def regenerate
-      posts_path = Turqlom::SETTINGS['posts_path']
-      posts = []
-      #iterate through all addresses
-      Dir.foreach(posts_path) do |blog_directory|
-        next if blog_directory == '.' or blog_directory == '..'
-        #load each post
-        Dir.foreach(File.join(posts_path, blog_directory)) do |post_file_name|
-          next if post_file_name == '.' or post_file_name == '..'
-          post_path = File.join(posts_path, blog_directory, post_file_name)
-          post = JSON.parse(File.read(post_path))
-          posts << post
-        end
-      end
-
+  def get_messages
+    #read post fixture
+    if Turqlom.env == "development"
+      logger.info("Loading fixtures since we're in development mode")
+      posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
       posts = posts.collect {|p| OpenStruct.new p }
-      publish(posts)
+    else
+      logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
+      posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
+      logger.info("Found #{posts.size} new messages")
     end
+    posts
+  end
 
+  ##These are the commands the user is able to call from the command line via options
 
-    def republish
-      staging_path = Turqlom::SETTINGS.staging_path
-      blogs = []
-      Dir.foreach(staging_path) do |blog_address|
-        next if blog_address == '.' or blog_address == '..' or blog_address == 'www'
-        blog = Turqlom::Blog.new(blog_address)
-        blogs << blog
-      end
-
-      index_blog = Turqlom::IndexBlog.new 'www'
-      blogs << index_blog
-
-      blogs.each do |blog|
-        blog.update_path
-        blog.jekyll_build
-        blog.translate_to_web_structure
-      end
-    end
-
-    def import
-      publish(get_messages)
-    end
-
-    def publish(posts)
-      index_blog = Turqlom::IndexBlog.new 'www'
-      index_blog.update_path
-      index_blog.write_jekyll_config
-      updated_blogs = []
-      posts.each do |p|
-        blog = Turqlom::Blog.new(p.from)
-        if (updated_blogs.select { |b| b.address == blog.address }.size == 0)
-          updated_blogs << blog 
-          blog.update_path
-          blog.write_jekyll_config
+  def reimport
+    posts = []
+    msgid = 0
+    #iterate through folders in staging path  
+    staging_path = Turqlom::SETTINGS.staging_path
+    Dir.foreach(staging_path) do |blog_directory|
+      next if blog_directory == '.' or blog_directory == '..' or blog_directory == 'www'
+      #load each post
+      Dir.foreach(File.join(staging_path, blog_directory, '_posts')) do |post_file_name|
+        next if post_file_name == '.' or post_file_name == '..' or post_file_name == '.gitignore'
+        post_path = File.join(staging_path, blog_directory, '_posts', post_file_name)
+        metadata = YAML::load(File.read(post_path))
+         
+        #get body
+        body = ""
+        dash_count = 0
+        File.open(post_path).each_line do |line|
+          if (line =~ /---/) == 0
+            dash_count += 1
+          end
+          
+          if dash_count >= 2
+            body += line
+          end
         end
-        post = Turqlom::Post.new(p)
-        
-        blog.write_post(post)
-        index_blog.write_post(post)
 
-        # Save for later
-        post.save
-
-        # Delete message from bm
-        post.delete_from_bitmessage
+        post = { msgid: msgid, message: body, from: metadata["address"], subject: metadata["title"] }
+        posts << post
+        msgid += 1
+        posts = posts.collect {|p| OpenStruct.new p }
+        posts.each do |obj|
+          post = Turqlom::Post.new(obj)
+          post.save
+        end
       end
-      index_blog.jekyll_build
-      index_blog.translate_to_web_structure
-      updated_blogs.each do |b|
-        b.jekyll_build
-        b.translate_to_web_structure
+    end
+  end
+
+  def regenerate
+    posts_path = Turqlom::SETTINGS['posts_path']
+    posts = []
+    #iterate through all addresses
+    Dir.foreach(posts_path) do |blog_directory|
+      next if blog_directory == '.' or blog_directory == '..'
+      #load each post
+      Dir.foreach(File.join(posts_path, blog_directory)) do |post_file_name|
+        next if post_file_name == '.' or post_file_name == '..'
+        post_path = File.join(posts_path, blog_directory, post_file_name)
+        post = JSON.parse(File.read(post_path))
+        posts << post
       end
     end
 
-    def get_messages
-      #read post fixture
-      if Turqlom.env == "development"
-        #@@logger.info("Loading fixtures since we're in development mode")
-        posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
-        posts = posts.collect {|p| OpenStruct.new p }
-      else
-        @@logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
-        posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
-        @@logger.info("Found #{posts.size} new messages")
+    posts = posts.collect {|p| OpenStruct.new p }
+    publish(posts)
+  end
+
+  def republish
+    staging_path = Turqlom::SETTINGS.staging_path
+    blogs = []
+    Dir.foreach(staging_path) do |blog_address|
+      next if blog_address == '.' or blog_address == '..' or blog_address == 'www'
+      blog = Turqlom::Blog.new(blog_address)
+      blogs << blog
+    end
+
+    index_blog = Turqlom::IndexBlog.new 'www'
+    blogs << index_blog
+
+    blogs.each do |blog|
+      blog.update_path
+      blog.jekyll_build
+      blog.translate_to_web_structure
+    end
+  end
+
+  def import
+    publish(get_messages)
+  end
+
+  def publish(posts)
+    index_blog = Turqlom::IndexBlog.new 'www'
+    index_blog.update_path
+    index_blog.write_jekyll_config
+    updated_blogs = []
+    posts.each do |p|
+      blog = Turqlom::Blog.new(p.from)
+      if (updated_blogs.select { |b| b.address == blog.address }.size == 0)
+        updated_blogs << blog 
+        blog.update_path
+        blog.write_jekyll_config
       end
-      posts
+      post = Turqlom::Post.new(p)
+      
+      blog.write_post(post)
+      index_blog.write_post(post)
+
+      # Save for later
+      post.save
+
+      # Delete message from bm
+      post.delete_from_bitmessage
+    end
+    index_blog.jekyll_build
+    index_blog.translate_to_web_structure
+    updated_blogs.each do |b|
+      b.jekyll_build
+      b.translate_to_web_structure
     end
   end
 end
