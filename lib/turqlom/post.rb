@@ -57,7 +57,7 @@ class Turqlom::Post
     logger.info("Storing post at: #{path}")
     post = { subject: @post.subject, message: @post.message, msgid: @post.msgid, from: @post.from}
     File.open(path, 'w+') do |file|
-      file.write(post.to_json)
+      file.write(post.to_s.encode('UTF-8', {:invalid => :replace, :undef => :replace, :replace => '?'}))
     end
   end
 end
