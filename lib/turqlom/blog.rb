@@ -163,7 +163,8 @@ class Turqlom::Blog
     end
   end
 
-  def regenerate
+  def regenerate_all
+    logger.info("REGENERATE-ALL");
     posts_path = Turqlom::SETTINGS['posts_path']
     posts = []
     #iterate through all addresses
@@ -173,11 +174,38 @@ class Turqlom::Blog
       Dir.foreach(File.join(posts_path, blog_directory)) do |post_file_name|
         next if post_file_name == '.' or post_file_name == '..'
         post_path = File.join(posts_path, blog_directory, post_file_name)
-        post = JSON.parse(File.read(post_path))
+        logger.info("Regenerating from #{post_path}")
+        begin
+          post = JSON.parse(File.read(post_path))
+        rescue
+          post = eval(File.read(post_path))
+        end
         posts << post
       end
     end
 
+    posts = posts.collect {|p| OpenStruct.new p }
+    publish(posts)
+  end
+
+  def regenerate(address)
+    logger.info("REGENERATE");
+    address.nil? && raise("No address specified to regenerate.")
+    posts_path = Turqlom::SETTINGS['posts_path']
+    posts = []
+    blog_directory = File.join(posts_path, address)
+    #load each post
+    Dir.foreach(blog_directory) do |post_file_name|
+      next if post_file_name == '.' or post_file_name == '..'
+      post_path = File.join(blog_directory, post_file_name)
+      logger.info("Regenerating from #{post_path}")
+      begin
+        post = JSON.parse(File.read(post_path))
+      rescue
+        post = eval(File.read(post_path))
+      end
+      posts << post
+    end
     posts = posts.collect {|p| OpenStruct.new p }
     publish(posts)
   end
@@ -206,6 +234,7 @@ class Turqlom::Blog
   end
 
   def publish(posts)
+    logger.info("PUBLISH")
     index_blog = Turqlom::IndexBlog.new 'www'
     index_blog.update_path
     index_blog.write_jekyll_config

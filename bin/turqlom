@@ -11,7 +11,8 @@ p = Trollop::Parser.new do
   opt :config, "Specify path to config file", :type => :string
   opt "disable-bm", "Disable calls to BM api", :type => :boolean
   opt :environment, "Set environment to production or development", :type => :string
-  opt :regenerate, "Regenerate all posts", :type => :boolean
+  opt "regenerate-all", "Regenerate all posts", :type => :boolean
+  opt :regenerate, "Regenerate all posts", :type => :string
   opt :reimport, "Reimport all posts from _posts directories", :type => :boolean
   opt :republish, "Rebuild all and translate structure to web", :type => :boolean
 end
@@ -45,8 +46,10 @@ end
 Turqlom::BM_URI = Turqlom::SETTINGS.bm_uri
 
 blog = Turqlom::Blog.new
-if opts[:regenerate]
-  blog.regenerate
+if opts["regenerate-all"]
+  blog.regenerate_all
+elsif opts[:regenerate]
+  blog.regenerate(opts[:regenerate])
 elsif opts[:reimport]
   blog.reimport
 elsif opts[:republish]
