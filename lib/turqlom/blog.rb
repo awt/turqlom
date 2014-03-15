@@ -88,6 +88,7 @@ class Turqlom::Blog
         erb.result(binding)
       end
     rescue Exception => e
+      logger.error(e.message)
       logger.error(e.backtrace)
     end
 
@@ -248,11 +249,12 @@ class Turqlom::Blog
       end
       post = Turqlom::Post.new(p)
       
+      # Save for later
+      post.save
+
       blog.write_post(post)
       index_blog.write_post(post)
 
-      # Save for later
-      post.save
 
       # Delete message from bm
       post.delete_from_bitmessage

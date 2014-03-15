@@ -34,8 +34,10 @@ class Turqlom::Post
 
   def delete_from_bitmessage
     if !Turqlom::SETTINGS['disable-bm']
-      logger.info "Trashing message with id #{@post.msgid}"
-      bm_api_client.trash_message @post.msgid
+      if defined? @post.msgid
+        logger.info "Trashing message with id #{@post.msgid}"
+        bm_api_client.trash_message @post.msgid
+      end
     end
   end
 
@@ -59,5 +61,19 @@ class Turqlom::Post
     File.open(path, 'w+') do |file|
       file.write(post.to_s.encode('UTF-8', {:invalid => :replace, :undef => :replace, :replace => '?'}))
     end
+
+    refresh
+  end
+
+  def post_path
+    File.join(storage_path, storage_file_name)
+  end
+
+  def refresh
+      begin
+        @post = OpenStruct.new(JSON.parse(post_path))
+      rescue
+        @post = OpenStruct.new(eval(File.read(post_path)))
+      end
   end
 end
