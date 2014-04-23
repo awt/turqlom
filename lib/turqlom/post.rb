@@ -12,11 +12,26 @@ class Turqlom::Post
 
   def file_name
     time = Time.new
-    file_name = "#{time.year}-#{time.month}-#{time.day}"
-    if !subject.nil?
-      file_name += "-#{subject.split[0..5].join('_')}"
+    comment_reg_ex = /Comment\s+@(BM-\w+)\/(\w+)/
+    isComment = !subject.match(comment_reg_ex).nil?
+    # Added rjust for lexicographical ordering
+    file_name = "#{time.year}-#{time.month.to_s.rjust(2,"0")}-#{time.day.to_s.rjust(2,"0")}"
+
+    # Add received time from bit message client
+    if (isComment == false)
+      #if !subject.nil?
+        #file_name += "-#{subject.split[0..5].join('_')}"
+        file_name += "-"+msgid.to_s 
+     #end
+        file_name += ".md"
+    # Post is a comment - No need to use Jekyll filename convention of articles/title
+    # Use date/time for ascending order display
+    else 
+      file_name += "-"+ time.hour.to_s.rjust(2,"0")+"-"+time.min.to_s.rjust(2,"0")
+      #file_name += "-"+msgid.to_s
+      file_name += ".yaml"
     end
-    file_name += ".md"
+    puts "file name is" + file_name
     file_name
   end
 
@@ -30,6 +45,16 @@ class Turqlom::Post
 
   def address
     @post.from
+  end
+  
+  # New attribute added to front matter as address for comments
+  def msgid
+    @post.msgid
+  end
+
+  # New attribute added to front matter to show comment date/time
+  def received_date
+    @post.received_at
   end
 
   def delete_from_bitmessage
@@ -57,7 +82,8 @@ class Turqlom::Post
     FileUtils.mkdir_p(storage_path)
     path = File.join(storage_path, storage_file_name)
     logger.info("Storing post at: #{path}")
-    post = { subject: @post.subject, message: @post.message, msgid: @post.msgid, from: @post.from}
+    # Added received_at field
+    post = { subject: @post.subject, message: @post.message, msgid: @post.msgid, from: @post.from, received_date: @post.received_at.to_s}
     File.open(path, 'w+') do |file|
       file.write(post.to_s.encode('UTF-8', {:invalid => :replace, :undef => :replace, :replace => '?'}))
     end
