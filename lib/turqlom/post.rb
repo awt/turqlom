@@ -52,8 +52,8 @@ class Turqlom::Post
   end
 
   # New attribute added to front matter to show comment date/time
-  def received_date
-    @post.received_date
+  def received_at
+    @post.received_at
   end
 
   def delete_from_bitmessage
@@ -82,7 +82,7 @@ class Turqlom::Post
     path = File.join(storage_path, storage_file_name)
     logger.info("Storing post at: #{path}")
     # Added received_at field
-    post = { subject: @post.subject, message: @post.message, msgid: @post.msgid, from: @post.from, received_date: @post.received_at.to_s}
+    post = { subject: @post.subject, message: @post.message, msgid: @post.msgid, from: @post.from, received_at: @post.received_at.to_s}
     File.open(path, 'w+') do |file|
       file.write(post.to_s.encode('UTF-8', {:invalid => :replace, :undef => :replace, :replace => '?'}))
     end

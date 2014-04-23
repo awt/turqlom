@@ -90,7 +90,7 @@ class Turqlom::Blog
         blog_title = post.subject
         
         # Added by deepakmani for display of timestamp
-        received_date = post.received_date
+        received_at = post.received_at
          
   
         # Added by deepakmani for comment address
@@ -130,7 +130,7 @@ class Turqlom::Blog
         post_id = "/#{category}/"+ to_post_id # Jekyll::Post::id is path of the blog post by default, Config.yml defines it
         description = post.body[0..320] + (( post.body.size > 320 ) ? '...' : '' )
         address = post.address 
-        received_date = post.received_date 
+        received_at = post.received_at 
         erb.result(binding)
       
      end # end erb.result(binding)
