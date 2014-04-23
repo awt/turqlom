@@ -12,6 +12,8 @@ class Turqlom::Blog
 
   attr_accessor :address
 
+  # Regular expression global variable used to add comments
+  $comment_reg_ex = /Comment\s+@(BM-\w+)\/(\w+)/
   def initialize(address=nil)
     @address = address
     initialize_path if !address.nil?
@@ -72,28 +74,70 @@ class Turqlom::Blog
   def write_post(post)
     #write post to _posts from erb template
     begin
+     
       logger.info("Writing post #{post.file_name.gsub(/\?/, "")} to blog #{path}")
       Turqlom::Util.write_template(
                       File.join(path, '_post.md.erb'),
                       File.join(path, "_posts", post.file_name.gsub(/\?/, ""))
                     ) do |erb|
-      
         layout = "post-no-feature"
-        title = post.subject
+        #title = post.subject
+        title = post.msgid
         description = post.body[0..320] + ( ( post.body.size > 320 ) ? '...' : '' )
         base_url = post.base_url
         category = 'articles'
         body = post.body
+        blog_title = post.subject
+        # Added by deepakmani for display of timestamp
+        received_at = post.received_at
+        # Added by deepakmani for comment address
+        msgid = post.msgid
         post_address = post.address
+        #puts "Writing post " 
         erb.result(binding)
-      end
+      end # of write_template method
     rescue Exception => e
       logger.error(e.message)
       logger.error(e.backtrace)
     end
 
-  end
+  end # of write_post
 
+  # New code to write a post in the _comments folder
+  def write_comment(post)
+    # for rescue
+    begin
+  
+      #comment_reg_ex = /Comment\s+@(\w+)/
+      comments_path = "#{path}/_comments"
+      logger.info("Writing Comment #{post.file_name.gsub(/\?/, "")} to #{comments_path}")
+  
+      #puts "Comment File name" + post.file_name.gsub(/\?/, "")  
+      Turqlom::Util.write_template(
+                    File.join(path, '_comment.md.erb'),
+                    File.join(path, "_posts/_comments", post.file_name.gsub(/\?/, ""))  
+                  ) do | erb |
+        base_url = post.base_url
+	category = 'articles'
+  	# Msg id of comment
+        msgid = post.msgid       
+        
+        # Map msgid of the post to post_id of comment
+        # Jekyll::Post::id is path of the blog post by default, category/title
+        post_id = "/#{category}/"+ post.subject.match($comment_reg_ex)[2]
+        description = post.body[0..320] + (( post.body.size > 320 ) ? '...' : '' )
+        address = post.address 
+        received_at = post.received_at 
+        erb.result(binding)
+      
+     end # end erb.result(binding)
+  
+   rescue Exception => e # why here erb.binding?
+      logger.error(e.message)
+      logger.error(e.backtrace)
+    end  
+  end # of write_comment method
+ 
   def wwwroot_path
     File.join(Turqlom::SETTINGS.wwwroot, @address)
   end
@@ -115,10 +159,13 @@ class Turqlom::Blog
     if Turqlom.env == "development"
       logger.info("Loading fixtures since we're in development mode")
       posts = YAML.load_file(File.join(File.dirname(__FILE__),'../../test/fixtures/posts.yml'))
+      # Take the Yaml Data and put it inside an OpenStruct 
       posts = posts.collect {|p| OpenStruct.new p }
     else
       logger.info("Checking for messages at receiving address: #{Turqlom::SETTINGS.receiving_address}")
+      #puts "Receiving Address is " + Turqlom::SETTINGS.receiving_address 
       posts = bm_api_client.get_all_inbox_messages.select {|m| m.to == Turqlom::SETTINGS.receiving_address }
+      puts "posts are " + posts.to_s
       logger.info("Found #{posts.size} new messages")
     end
     posts
@@ -151,8 +198,8 @@ class Turqlom::Blog
             body += line
           end
         end
-
-        post = { msgid: msgid, message: body, from: metadata["address"], subject: metadata["title"] }
+        puts "Re-importing"
+        post = { msgid: msgid, message: body, from: metadata["address"], subject: metadata["title"], date: date}
         posts << post
         msgid += 1
         posts = posts.collect {|p| OpenStruct.new p }
@@ -235,35 +282,60 @@ class Turqlom::Blog
   end
 
   def publish(posts)
+
     logger.info("PUBLISH")
     index_blog = Turqlom::IndexBlog.new 'www'
     index_blog.update_path
+  
+    # is this needed?
     index_blog.write_jekyll_config
     updated_blogs = []
     posts.each do |p|
-      blog = Turqlom::Blog.new(p.from)
+      # Check if the post is a comment
+      isComment = !p.subject.match($comment_reg_ex).nil?
+      if (isComment == true)
+          # Use the address of the parent post that already exists
+          # Can we hash the parent address based on msg_id?
+         blog_address = p.subject.match($comment_reg_ex)[1]
+      else
+         blog_address = p.from
+      end
+
+      blog = Turqlom::Blog.new(blog_address)
       if (updated_blogs.select { |b| b.address == blog.address }.size == 0)
         updated_blogs << blog 
         blog.update_path
         blog.write_jekyll_config
       end
+
+      # Take struct for each Post and use it to create a class
       post = Turqlom::Post.new(p)
       
-      # Save for later
-      post.save
+      # Save in the data folder
+      post.save 
+     if (isComment == false) 
+         blog.write_post(post)
+        index_blog.write_post(post)
+         
+      
+        # Delete message from bm
+        post.delete_from_bitmessage
+      else
+       
+       # Post is a comment - In parent posters path
+       blog.write_comment(post)
+    
+       index_blog.write_comment(post)  
+       post.delete_from_bitmessage
+      end
 
-      blog.write_post(post)
-      index_blog.write_post(post)
+    end # posts.each
 
-
-      # Delete message from bm
-      post.delete_from_bitmessage
-    end
     index_blog.jekyll_build
     index_blog.translate_to_web_structure
     updated_blogs.each do |b|
       b.jekyll_build
       b.translate_to_web_structure
-    end
-  end
-end
+    end # update_blogs.each
+  end # publish
+end # Turqlom::Blog
