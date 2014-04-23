@@ -76,7 +76,7 @@ class Turqlom::Blog
     begin
      
       logger.info("Writing post #{post.file_name.gsub(/\?/, "")} to blog #{path}")
-     Turqlom::Util.write_template(
+      Turqlom::Util.write_template(
                       File.join(path, '_post.md.erb'),
                       File.join(path, "_posts", post.file_name.gsub(/\?/, ""))
                     ) do |erb|
@@ -88,11 +88,8 @@ class Turqlom::Blog
         category = 'articles'
         body = post.body
         blog_title = post.subject
-        
         # Added by deepakmani for display of timestamp
         received_at = post.received_at
-         
-  
         # Added by deepakmani for comment address
         msgid = post.msgid
         post_address = post.address
@@ -124,10 +121,10 @@ class Turqlom::Blog
 	category = 'articles'
   	# Msg id of comment
         msgid = post.msgid       
-  
+        
         # Map msgid of the post to post_id of comment
-        to_post_id = post.subject.match($comment_reg_ex)[2]      
-        post_id = "/#{category}/"+ to_post_id # Jekyll::Post::id is path of the blog post by default, Config.yml defines it
+        # Jekyll::Post::id is path of the blog post by default, category/title
+        post_id = "/#{category}/"+ post.subject.match($comment_reg_ex)[2]
         description = post.body[0..320] + (( post.body.size > 320 ) ? '...' : '' )
         address = post.address 
         received_at = post.received_at 
