@@ -31,7 +31,6 @@ class Turqlom::Post
       #file_name += "-"+msgid.to_s
       file_name += ".yaml"
     end
-    puts "file name is" + file_name
     file_name
   end
 
@@ -54,7 +53,7 @@ class Turqlom::Post
 
   # New attribute added to front matter to show comment date/time
   def received_date
-    @post.received_at
+    @post.received_date
   end
 
   def delete_from_bitmessage

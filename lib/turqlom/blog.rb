@@ -74,6 +74,7 @@ class Turqlom::Blog
   def write_post(post)
     #write post to _posts from erb template
     begin
+     
       logger.info("Writing post #{post.file_name.gsub(/\?/, "")} to blog #{path}")
      Turqlom::Util.write_template(
                       File.join(path, '_post.md.erb'),
@@ -91,14 +92,13 @@ class Turqlom::Blog
         # Added by deepakmani for display of timestamp
         received_date = post.received_date
          
-        puts "received date" + received_date
   
         # Added by deepakmani for comment address
         msgid = post.msgid
-      
         post_address = post.address
+        #puts "Writing post " 
         erb.result(binding)
-      end
+      end # of write_template method
     rescue Exception => e
       logger.error(e.message)
       logger.error(e.backtrace)
@@ -128,10 +128,9 @@ class Turqlom::Blog
         # Map msgid of the post to post_id of comment
         to_post_id = post.subject.match($comment_reg_ex)[2]      
         post_id = "/#{category}/"+ to_post_id # Jekyll::Post::id is path of the blog post by default, Config.yml defines it
-        description = post.body[0..100] + (( post.body.size > 320 ) ? '...' : '' )
+        description = post.body[0..320] + (( post.body.size > 320 ) ? '...' : '' )
         address = post.address 
         received_date = post.received_date 
-        puts "received_date " + received_date.to_s
         erb.result(binding)
       
      end # end erb.result(binding)
@@ -287,8 +286,6 @@ class Turqlom::Blog
 
   def publish(posts)
 
-    # Regular expression for comments
-    #comment_reg_ex = /Comment\s+@(\w+)/
     logger.info("PUBLISH")
     index_blog = Turqlom::IndexBlog.new 'www'
     index_blog.update_path
@@ -297,10 +294,8 @@ class Turqlom::Blog
     index_blog.write_jekyll_config
     updated_blogs = []
     posts.each do |p|
-      puts "Posts from BM inbox subject"+ p.subject.to_s
       # Check if the post is a comment
       isComment = !p.subject.match($comment_reg_ex).nil?
-      #puts "is Comment " + isComment.to_s
       if (isComment == true)
           # Use the address of the parent post that already exists
           # Can we hash the parent address based on msg_id?
@@ -320,9 +315,8 @@ class Turqlom::Blog
       post = Turqlom::Post.new(p)
       
       # Save in the data folder
-      post.save
+      post.save 
      if (isComment == false) 
-         #puts "Calling write_post"
          blog.write_post(post)
         index_blog.write_post(post)
          
